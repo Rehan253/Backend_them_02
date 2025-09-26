@@ -6,6 +6,9 @@ defmodule AsBackendTheme2.Accounts.User do
     field :username, :string
     field :email, :string
 
+    has_many :working_times, AsBackendTheme2.TimeTracking.WorkingTime
+    has_many :clocks, AsBackendTheme2.TimeTracking.Clock
+
     timestamps(type: :utc_datetime)
   end
 

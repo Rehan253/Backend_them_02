@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: as_backend_theme2_prod
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db/as_backend_theme2_prod
+      SECRET_KEY_BASE: Tj28LDBD4mWSUCxBgjnyODpwyo2rkWCDKi2JgFmQOxF7vN/jUXEQDHsCDSwcrvja
+      MIX_ENV: prod
+    command: ["bin/as_backend_theme2", "start"]
+
+volumes:
+  pgdata:
