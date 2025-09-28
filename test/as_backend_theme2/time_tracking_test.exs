@@ -21,7 +21,13 @@ defmodule AsBackendTheme2.TimeTrackingTest do
     end
 
     test "create_working_time/1 with valid data creates a working_time" do
-      valid_attrs = %{start: ~N[2025-09-23 12:26:00], end: ~N[2025-09-23 12:26:00]}
+      user = AsBackendTheme2.AccountsFixtures.user_fixture()
+
+      valid_attrs = %{
+        start: ~N[2025-09-23 12:26:00],
+        end: ~N[2025-09-23 12:26:00],
+        user_id: user.id
+      }
 
       assert {:ok, %WorkingTime{} = working_time} = TimeTracking.create_working_time(valid_attrs)
       assert working_time.start == ~N[2025-09-23 12:26:00]
@@ -36,14 +42,19 @@ defmodule AsBackendTheme2.TimeTrackingTest do
       working_time = working_time_fixture()
       update_attrs = %{start: ~N[2025-09-24 12:26:00], end: ~N[2025-09-24 12:26:00]}
 
-      assert {:ok, %WorkingTime{} = working_time} = TimeTracking.update_working_time(working_time, update_attrs)
+      assert {:ok, %WorkingTime{} = working_time} =
+               TimeTracking.update_working_time(working_time, update_attrs)
+
       assert working_time.start == ~N[2025-09-24 12:26:00]
       assert working_time.end == ~N[2025-09-24 12:26:00]
     end
 
     test "update_working_time/2 with invalid data returns error changeset" do
       working_time = working_time_fixture()
-      assert {:error, %Ecto.Changeset{}} = TimeTracking.update_working_time(working_time, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               TimeTracking.update_working_time(working_time, @invalid_attrs)
+
       assert working_time == TimeTracking.get_working_time!(working_time.id)
     end
 
@@ -77,7 +88,8 @@ defmodule AsBackendTheme2.TimeTrackingTest do
     end
 
     test "create_clock/1 with valid data creates a clock" do
-      valid_attrs = %{status: true, time: ~N[2025-09-23 12:44:00]}
+      user = AsBackendTheme2.AccountsFixtures.user_fixture()
+      valid_attrs = %{status: true, time: ~N[2025-09-23 12:44:00], user_id: user.id}
 
       assert {:ok, %Clock{} = clock} = TimeTracking.create_clock(valid_attrs)
       assert clock.status == true

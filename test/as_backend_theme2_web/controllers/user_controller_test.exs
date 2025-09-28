@@ -5,14 +5,16 @@ defmodule AsBackendTheme2Web.UserControllerTest do
   alias AsBackendTheme2.Accounts.User
 
   @create_attrs %{
-    username: "some username",
-    email: "some email"
+    email: "test@example.com",
+    first_name: "some first_name",
+    last_name: "some last_name"
   }
   @update_attrs %{
-    username: "some updated username",
-    email: "some updated email"
+    email: "updated@example.com",
+    first_name: "some updated first_name",
+    last_name: "some updated last_name"
   }
-  @invalid_attrs %{username: nil, email: nil}
+  @invalid_attrs %{email: nil, first_name: nil, last_name: nil}
 
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
@@ -34,8 +36,9 @@ defmodule AsBackendTheme2Web.UserControllerTest do
 
       assert %{
                "id" => ^id,
-               "email" => "some email",
-               "username" => "some username"
+               "email" => "test@example.com",
+               "first_name" => "some first_name",
+               "last_name" => "some last_name"
              } = json_response(conn, 200)["data"]
     end
 
@@ -56,8 +59,9 @@ defmodule AsBackendTheme2Web.UserControllerTest do
 
       assert %{
                "id" => ^id,
-               "email" => "some updated email",
-               "username" => "some updated username"
+               "email" => "updated@example.com",
+               "first_name" => "some updated first_name",
+               "last_name" => "some updated last_name"
              } = json_response(conn, 200)["data"]
     end
 

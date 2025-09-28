@@ -48,5 +48,27 @@ defmodule AsBackendTheme2Web.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  defmodule CORSPlug do
+    import Plug.Conn
+
+    def init(opts), do: opts
+
+    def call(conn, _opts) do
+      conn =
+        conn
+        |> put_resp_header("access-control-allow-origin", "*")
+        |> put_resp_header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS")
+        |> put_resp_header("access-control-allow-headers", "content-type, authorization")
+
+      if conn.method == "OPTIONS" do
+        conn |> send_resp(200, "") |> halt()
+      else
+        conn
+      end
+    end
+  end
+
+  plug CORSPlug
   plug AsBackendTheme2Web.Router
 end

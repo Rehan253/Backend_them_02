@@ -1,4 +1,15 @@
 defmodule AsBackendTheme2Web.Router do
+  @moduledoc """
+  Router for the Time Manager API.
+
+  This router defines all the REST API endpoints for:
+  - User management (CRUD operations)
+  - Working time tracking (manual entries, filtering by date)
+  - Clock in/out functionality (toggle status, retrieve history)
+
+  All API routes are prefixed with /api and return JSON responses.
+  """
+
   use AsBackendTheme2Web, :router
 
   pipeline :api do
@@ -8,23 +19,39 @@ defmodule AsBackendTheme2Web.Router do
   scope "/api", AsBackendTheme2Web do
     pipe_through :api
 
-
+    # ============================================================================
+    # USER MANAGEMENT ROUTES
+    # ============================================================================
+    # Standard RESTful routes for user CRUD operations
     resources "/users", UserController, except: [:new, :edit]
 
+    # ============================================================================
+    # WORKING TIME ROUTES
+    # ============================================================================
+    # GET /api/workingtime/:userID?start=...&end=... - List working times for user (with optional date filtering)
+    get "/workingtime/:userID", WorkingTimeController, :index_by_user
 
-    get    "/workingtime/:userID",       WorkingTimeController, :index_by_user
-    get    "/workingtime/:userID/:id",   WorkingTimeController, :show_one
-    post   "/workingtime/:userID",       WorkingTimeController, :create_for_user
-    put    "/workingtime/:id",           WorkingTimeController, :update
-    delete "/workingtime/:id",           WorkingTimeController, :delete
+    # GET /api/workingtime/:userID/:id - Get specific working time entry for user
+    get "/workingtime/:userID/:id", WorkingTimeController, :show_one
 
+    # POST /api/workingtime/:userID - Create new working time entry for user
+    post "/workingtime/:userID", WorkingTimeController, :create_for_user
 
-    # CLOCK ROUTES
-    get  "/clocks/:userID", ClockController, :index_by_user
+    # PUT /api/workingtime/:id - Update existing working time entry
+    put "/workingtime/:id", WorkingTimeController, :update
+
+    # DELETE /api/workingtime/:id - Delete working time entry
+    delete "/workingtime/:id", WorkingTimeController, :delete
+
+    # ============================================================================
+    # CLOCK IN/OUT ROUTES
+    # ============================================================================
+    # GET /api/clocks/:userID - Get all clock entries for user (most recent first)
+    get "/clocks/:userID", ClockController, :index_by_user
+
+    # POST /api/clocks/:userID - Toggle clock in/out status for user
+    # This is the main endpoint for clock in/out functionality
     post "/clocks/:userID", ClockController, :toggle
-
-
-
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

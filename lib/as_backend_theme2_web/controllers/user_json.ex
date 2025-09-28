@@ -18,20 +18,20 @@ defmodule AsBackendTheme2Web.UserJSON do
   defp data(%User{} = user) do
     %{
       id: user.id,
-      username: user.username,
-      email: user.email
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name
     }
   end
-
 
   def error(%{changeset: changeset}) do
     %{
-      errors: Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-        Enum.reduce(opts, msg, fn {key, value}, acc ->
-          String.replace(acc, "%{#{key}}", to_string(value))
+      errors:
+        Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
         end)
-      end)
     }
   end
-
 end

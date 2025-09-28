@@ -8,7 +8,7 @@ defmodule AsBackendTheme2.AccountsTest do
 
     import AsBackendTheme2.AccountsFixtures
 
-    @invalid_attrs %{username: nil, email: nil}
+    @invalid_attrs %{email: nil, first_name: nil, last_name: nil}
 
     test "list_users/0 returns all users" do
       user = user_fixture()
@@ -21,11 +21,16 @@ defmodule AsBackendTheme2.AccountsTest do
     end
 
     test "create_user/1 with valid data creates a user" do
-      valid_attrs = %{username: "some username", email: "some email"}
+      valid_attrs = %{
+        email: "test@example.com",
+        first_name: "some first_name",
+        last_name: "some last_name"
+      }
 
       assert {:ok, %User{} = user} = Accounts.create_user(valid_attrs)
-      assert user.username == "some username"
-      assert user.email == "some email"
+      assert user.email == "test@example.com"
+      assert user.first_name == "some first_name"
+      assert user.last_name == "some last_name"
     end
 
     test "create_user/1 with invalid data returns error changeset" do
@@ -34,11 +39,17 @@ defmodule AsBackendTheme2.AccountsTest do
 
     test "update_user/2 with valid data updates the user" do
       user = user_fixture()
-      update_attrs = %{username: "some updated username", email: "some updated email"}
+
+      update_attrs = %{
+        email: "updated@example.com",
+        first_name: "some updated first_name",
+        last_name: "some updated last_name"
+      }
 
       assert {:ok, %User{} = user} = Accounts.update_user(user, update_attrs)
-      assert user.username == "some updated username"
-      assert user.email == "some updated email"
+      assert user.email == "updated@example.com"
+      assert user.first_name == "some updated first_name"
+      assert user.last_name == "some updated last_name"
     end
 
     test "update_user/2 with invalid data returns error changeset" do
