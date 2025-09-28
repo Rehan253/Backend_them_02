@@ -10,9 +10,19 @@ defmodule AsBackendTheme2Web.UserController do
     users =
       AsBackendTheme2.Accounts.list_users()
       |> Enum.filter(fn user ->
-        email_ok = is_nil(params["email"]) or String.downcase(user.email) == String.downcase(params["email"])
-        username_ok = is_nil(params["username"]) or String.downcase(user.username) == String.downcase(params["username"])
-        email_ok and username_ok
+        email_ok =
+          is_nil(params["email"]) or
+            String.downcase(user.email) == String.downcase(params["email"])
+
+        first_name_ok =
+          is_nil(params["first_name"]) or
+            String.downcase(user.first_name || "") == String.downcase(params["first_name"])
+
+        last_name_ok =
+          is_nil(params["last_name"]) or
+            String.downcase(user.last_name || "") == String.downcase(params["last_name"])
+
+        email_ok and first_name_ok and last_name_ok
       end)
 
     render(conn, :index, users: users)
@@ -27,11 +37,11 @@ defmodule AsBackendTheme2Web.UserController do
 
       {:error, changeset} ->
         conn
-        |> put_status(:bad_request)
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
         |> render(:error, changeset: changeset)
     end
   end
-
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
@@ -42,16 +52,30 @@ defmodule AsBackendTheme2Web.UserController do
   def update(conn, %{"id" => id, "user" => user_params}) do
     user = Accounts.get_user!(id)
 
-    with {:ok, %User{} = user} <- Accounts.update_user(user, user_params) do
-      render(conn, :show, user: user)
+    case Accounts.update_user(user, user_params) do
+      {:ok, %User{} = user} ->
+        render(conn, :show, user: user)
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
+        |> render(:error, changeset: changeset)
     end
   end
 
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
 
-    with {:ok, %User{}} <- Accounts.delete_user(user) do
-      send_resp(conn, :no_content, "")
+    case Accounts.delete_user(user) do
+      {:ok, %User{}} ->
+        send_resp(conn, :no_content, "")
+
+      {:error, %Ecto.Changeset{errors: errors}} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
+        |> render(:error, changeset: %Ecto.Changeset{errors: errors})
     end
   end
 end

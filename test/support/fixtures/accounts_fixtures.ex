@@ -7,12 +7,7 @@ defmodule AsBackendTheme2.AccountsFixtures do
   @doc """
   Generate a unique user email.
   """
-  def unique_user_email, do: "some email#{System.unique_integer([:positive])}"
-
-  @doc """
-  Generate a unique user username.
-  """
-  def unique_user_username, do: "some username#{System.unique_integer([:positive])}"
+  def unique_user_email, do: "user#{System.unique_integer([:positive])}@example.com"
 
   @doc """
   Generate a user.
@@ -22,7 +17,8 @@ defmodule AsBackendTheme2.AccountsFixtures do
       attrs
       |> Enum.into(%{
         email: unique_user_email(),
-        username: unique_user_username()
+        first_name: "Test",
+        last_name: "User"
       })
       |> AsBackendTheme2.Accounts.create_user()
 
