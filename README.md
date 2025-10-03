@@ -2,7 +2,7 @@
 
 Phoenix/Elixir backend with Vue.js frontend for time tracking and analytics.
 
-## 🚀 Quick Start with Docker Compose
+##  Quick Start with Docker Compose
 
 ### Prerequisites
 - Docker
@@ -25,7 +25,7 @@ docker-compose down
 - **Backend API**: http://localhost:4000/api
 - **Database**: localhost:5432
 
-## 📊 Features
+##  Features
 
 ### Time Tracking
 - Clock in/out functionality
@@ -69,7 +69,7 @@ npm install
 npm run dev
 ```
 
-## 📈 Sample Data
+##  Sample Data
 
 The application includes 90 days of realistic sample data:
 - **12 Users** with different work patterns
@@ -108,7 +108,7 @@ The application includes 90 days of realistic sample data:
 
 All services include health checks and automatic dependency management.
 
-## 📝 Troubleshooting
+##  Troubleshooting
 
 ### View Logs
 ```bash

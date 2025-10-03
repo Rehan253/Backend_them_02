@@ -18,68 +18,89 @@ alias AsBackendTheme2.TimeTracking.Clock
 # Create sample users for testing purposes
 # Note: No roles are included as role logic is not yet implemented, we will implement roles via a Postgres read-only coumn that contains permissions for everyone
 users = [
-  # General Manager - has access to create users
   %{
-    email: "admin@gotham.com",
-    first_name: "Bruce",
-    last_name: "Wayne"
+    email: "admin@gmail.com",
+    first_name: "Admin",
+    last_name: "Admin",
+    password: "admin123",
+    role_id: 3
   },
-  # Manager - can view team data
   %{
     email: "manager@gotham.com",
     first_name: "Alfred",
-    last_name: "Pennyworth"
+    last_name: "Pennyworth",
+    password: "manager123",
+    role_id: 2
   },
-  # Regular employees with realistic data for graphs
   %{
     email: "john.doe@example.com",
     first_name: "John",
-    last_name: "Doe"
+    last_name: "Doe",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "jane.smith@example.com",
     first_name: "Jane",
-    last_name: "Smith"
+    last_name: "Smith",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "bob.wilson@example.com",
     first_name: "Bob",
-    last_name: "Wilson"
+    last_name: "Wilson",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "alice.brown@example.com",
     first_name: "Alice",
-    last_name: "Brown"
+    last_name: "Brown",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "charlie.davis@example.com",
     first_name: "Charlie",
-    last_name: "Davis"
+    last_name: "Davis",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "sarah.johnson@example.com",
     first_name: "Sarah",
-    last_name: "Johnson"
+    last_name: "Johnson",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "mike.garcia@example.com",
     first_name: "Mike",
-    last_name: "Garcia"
+    last_name: "Garcia",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "lisa.martinez@example.com",
     first_name: "Lisa",
-    last_name: "Martinez"
+    last_name: "Martinez",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "david.lee@example.com",
     first_name: "David",
-    last_name: "Lee"
+    last_name: "Lee",
+    password: "password123",
+    role_id: 1
   },
   %{
     email: "emma.taylor@example.com",
     first_name: "Emma",
-    last_name: "Taylor"
+    last_name: "Taylor",
+    password: "password123",
+    role_id: 1
   }
 ]
 
@@ -148,7 +169,7 @@ for {user_id, user_index} <- Enum.with_index(user_ids) do
 
     # Skip weekends (Saturday = 6, Sunday = 7) for most users
     # But add some weekend work based on user pattern
-    should_work = Date.day_of_week(date) in [1, 2, 3, 4, 5] or 
+    should_work = Date.day_of_week(date) in [1, 2, 3, 4, 5] or
                   (:rand.uniform(100) <= (pattern.weekend_work_chance * 100))
 
     if should_work do

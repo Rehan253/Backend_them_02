@@ -76,7 +76,7 @@ defmodule AsBackendTheme2Web.WorkingTimeController do
   Creates a new working time entry for a user.
 
   ## Route
-  POST /api/workingtime/:userID
+  POST /api/workingtime/
 
   ## Parameters
   - `user_id`: User ID in the URL path
@@ -85,8 +85,9 @@ defmodule AsBackendTheme2Web.WorkingTimeController do
   ## Returns
   JSON response with created working time entry or error
   """
-  def create_for_user(conn, %{"userID" => user_id} = params) do
-    attrs = Map.put(params["working_time"] || %{}, "user_id", user_id)
+  def create_for_user(conn, %{"working_time" => wt_params}) do
+    user_id = conn.assigns.current_user_id
+    attrs = Map.put(wt_params, "user_id", user_id)
 
     case TimeTracking.create_working_time(attrs) do
       {:ok, working_time} ->

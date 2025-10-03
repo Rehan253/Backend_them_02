@@ -3,6 +3,8 @@ defmodule AsBackendTheme2Web.UserController do
 
   alias AsBackendTheme2.Accounts
   alias AsBackendTheme2.Accounts.User
+  alias AsBackendTheme2.Repo
+
 
   action_fallback AsBackendTheme2Web.FallbackController
 
@@ -76,6 +78,41 @@ defmodule AsBackendTheme2Web.UserController do
         |> put_status(:unprocessable_entity)
         |> put_view(json: AsBackendTheme2Web.UserJSON)
         |> render(:error, changeset: %Ecto.Changeset{errors: errors})
+    end
+  end
+
+  def change_role(conn, %{"id" => user_id, "role" => role_name}) do
+    current_user_id = conn.assigns.current_user_id
+    current_user = Accounts.get_user!(current_user_id)
+
+    with true <- Accounts.is_admin?(current_user),
+         {:ok, user} <- Accounts.get_user(user_id),
+         {:ok, updated_user} <- Accounts.update_user_role(user, role_name),
+          updated_user = Repo.preload(updated_user, :role) do
+      conn
+      |> put_status(:ok)
+      |> render(:show, user: updated_user)
+    else
+      false ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "Only admins can promote or demote users"})
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "User not found"})
+
+      {:error, :invalid_role} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid role"})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
+        |> render(:error, changeset: changeset)
     end
   end
 end
