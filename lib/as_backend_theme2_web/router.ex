@@ -16,54 +16,41 @@ defmodule AsBackendTheme2Web.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_auth do
+    plug AsBackendTheme2Web.Plugs.AuthPlug
+  end
+
+  # =====================
+  # Public API Routes
+  # =====================
   scope "/api", AsBackendTheme2Web do
     pipe_through :api
 
-    # ============================================================================
-    # USER MANAGEMENT ROUTES
-    # ============================================================================
-    # Standard RESTful routes for user CRUD operations
+    # User Registration & Login
     resources "/users", UserController, except: [:new, :edit]
     post "/login", SessionController, :login
 
-
-
-    # ============================================================================
-    # WORKING TIME ROUTES
-    # ============================================================================
-    # GET /api/workingtime/:userID?start=...&end=... - List working times for user (with optional date filtering)
+    # GET only routes are open (no CSRF needed)
     get "/workingtime/:userID", WorkingTimeController, :index_by_user
-
-    # GET /api/workingtime/:userID/:id - Get specific working time entry for user
     get "/workingtime/:userID/:id", WorkingTimeController, :show_one
+    get "/clocks/:userID", ClockController, :index_by_user
+  end
 
-    # POST /api/workingtime/:userID - Create new working time entry for user
+  # =====================
+  # Protected Routes (JWT + CSRF required)
+  # =====================
+  scope "/api", AsBackendTheme2Web do
+    pipe_through [:api, :api_auth]
+
     post "/workingtime/:userID", WorkingTimeController, :create_for_user
-
-    # PUT /api/workingtime/:id - Update existing working time entry
     put "/workingtime/:id", WorkingTimeController, :update
-
-    # DELETE /api/workingtime/:id - Delete working time entry
     delete "/workingtime/:id", WorkingTimeController, :delete
 
-    # ============================================================================
-    # CLOCK IN/OUT ROUTES
-    # ============================================================================
-    # GET /api/clocks/:userID - Get all clock entries for user (most recent first)
-    get "/clocks/:userID", ClockController, :index_by_user
-
-    # POST /api/clocks/:userID - Toggle clock in/out status for user
-    # This is the main endpoint for clock in/out functionality
     post "/clocks/:userID", ClockController, :toggle
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # Dev tools (LiveDashboard, Mailbox)
   if Application.compile_env(:as_backend_theme2, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do
