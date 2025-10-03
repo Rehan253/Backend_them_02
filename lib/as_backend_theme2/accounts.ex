@@ -37,7 +37,11 @@ defmodule AsBackendTheme2.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(:role)
+  end
 
   @doc """
   Gets a single user by email.
@@ -69,6 +73,7 @@ defmodule AsBackendTheme2.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+
   def create_user(attrs) do
     email = Map.get(attrs, "email")
 
@@ -87,7 +92,6 @@ defmodule AsBackendTheme2.Accounts do
         |> Repo.insert()
     end
   end
-
 
   @doc """
   Updates a user.
@@ -148,5 +152,31 @@ defmodule AsBackendTheme2.Accounts do
   """
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
+  end
+
+  # Role Management
+
+  # Role Management
+
+  def is_admin?(%User{role: %{name: "admin"}}), do: true
+  def is_admin?(_), do: false
+
+  def get_user(id) do
+    case Repo.get(User, id) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
+
+  def update_user_role(%User{} = user, role_name) do
+    case Repo.get_by(AsBackendTheme2.Accounts.Role, name: role_name) do
+      nil ->
+        {:error, :invalid_role}
+
+      role ->
+        user
+        |> Ecto.Changeset.change(%{role_id: role.id})
+        |> Repo.update()
+    end
   end
 end
