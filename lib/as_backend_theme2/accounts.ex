@@ -70,26 +70,24 @@ defmodule AsBackendTheme2.Accounts do
 
   """
   def create_user(attrs) do
-    # Check if user with email already exists (only if email is provided)
-    case attrs["email"] do
-      nil ->
+    email = Map.get(attrs, "email")
+
+    cond do
+      is_nil(email) ->
         %User{}
-        |> User.changeset(attrs)
+        |> User.registration_changeset(attrs)
         |> Repo.insert()
 
-      email ->
-        case get_user_by_email(email) do
-          nil ->
-            %User{}
-            |> User.changeset(attrs)
-            |> Repo.insert()
+      get_user_by_email(email) ->
+        {:error, %Ecto.Changeset{} |> Ecto.Changeset.add_error(:email, "has already been taken")}
 
-          _existing_user ->
-            {:error,
-             %Ecto.Changeset{} |> Ecto.Changeset.add_error(:email, "has already been taken")}
-        end
+      true ->
+        %User{}
+        |> User.registration_changeset(attrs)
+        |> Repo.insert()
     end
   end
+
 
   @doc """
   Updates a user.

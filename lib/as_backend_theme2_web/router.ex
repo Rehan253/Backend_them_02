@@ -25,6 +25,7 @@ defmodule AsBackendTheme2Web.Router do
     # Standard RESTful routes for user CRUD operations
     resources "/users", UserController, except: [:new, :edit]
 
+
     # ============================================================================
     # WORKING TIME ROUTES
     # ============================================================================
