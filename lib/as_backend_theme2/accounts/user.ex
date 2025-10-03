@@ -19,6 +19,9 @@ defmodule AsBackendTheme2.Accounts.User do
     belongs_to :role, AsBackendTheme2.Accounts.Role
     has_many :working_times, AsBackendTheme2.TimeTracking.WorkingTime
     has_many :clocks, AsBackendTheme2.TimeTracking.Clock
+    has_many :team_memberships, AsBackendTheme2.Accounts.TeamMembership
+    many_to_many :teams, AsBackendTheme2.Team, join_through: AsBackendTheme2.Accounts.TeamMembership
+
 
     timestamps(type: :utc_datetime)
   end

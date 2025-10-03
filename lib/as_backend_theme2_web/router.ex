@@ -28,6 +28,7 @@ defmodule AsBackendTheme2Web.Router do
 
     # User Registration & Login
     resources "/users", UserController, except: [:new, :edit]
+    resources "/teams", TeamController, include: [:create]
     post "/login", SessionController, :login
 
     # GET only routes are open (no CSRF needed)
@@ -46,6 +47,10 @@ defmodule AsBackendTheme2Web.Router do
     post "/workingtime/:userID", WorkingTimeController, :create_for_user
     put "/workingtime/:id", WorkingTimeController, :update
     delete "/workingtime/:id", WorkingTimeController, :delete
+    post "/teams/:team_id/users/:user_id", TeamController, :add_user
+    delete "/teams/:team_id/users/:user_id", TeamController, :remove_user
+
+
 
     post "/clocks/:userID", ClockController, :toggle
   end
