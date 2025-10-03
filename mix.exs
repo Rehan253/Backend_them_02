@@ -53,6 +53,7 @@ defmodule AsBackendTheme2.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:argon2_elixir, "~> 4.0"},
+      {:joken, "~> 2.6"}
     ]
   end
 
