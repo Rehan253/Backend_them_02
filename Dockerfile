@@ -1,4 +1,4 @@
-# STEP 1 — Build stage
+# build stage
 FROM hexpm/elixir:1.15.7-erlang-26.2.1-debian-bookworm-20240130 AS build
 
 # Install build tools & dependencies

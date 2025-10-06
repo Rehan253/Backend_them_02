@@ -9,6 +9,7 @@ defmodule AsBackendTheme2.Accounts do
   alias AsBackendTheme2.Accounts.User
   alias AsBackendTheme2.TimeTracking.WorkingTime
   alias AsBackendTheme2.TimeTracking.Clock
+  alias AsBackendTheme2.Accounts.TeamMembership
 
   @doc """
   Returns the list of users.
@@ -20,7 +21,7 @@ defmodule AsBackendTheme2.Accounts do
 
   """
   def list_users do
-    Repo.all(User)
+    Repo.all(User) |> Repo.preload(:role)
   end
 
   @doc """
@@ -37,7 +38,11 @@ defmodule AsBackendTheme2.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    User
+    |> Repo.get!(id)
+    |> Repo.preload(:role)
+  end
 
   @doc """
   Gets a single user by email.
@@ -69,25 +74,23 @@ defmodule AsBackendTheme2.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
+
   def create_user(attrs) do
-    # Check if user with email already exists (only if email is provided)
-    case attrs["email"] do
-      nil ->
+    email = Map.get(attrs, "email")
+
+    cond do
+      is_nil(email) ->
         %User{}
-        |> User.changeset(attrs)
+        |> User.registration_changeset(attrs)
         |> Repo.insert()
 
-      email ->
-        case get_user_by_email(email) do
-          nil ->
-            %User{}
-            |> User.changeset(attrs)
-            |> Repo.insert()
+      get_user_by_email(email) ->
+        {:error, %Ecto.Changeset{} |> Ecto.Changeset.add_error(:email, "has already been taken")}
 
-          _existing_user ->
-            {:error,
-             %Ecto.Changeset{} |> Ecto.Changeset.add_error(:email, "has already been taken")}
-        end
+      true ->
+        %User{}
+        |> User.registration_changeset(attrs)
+        |> Repo.insert()
     end
   end
 
@@ -150,5 +153,56 @@ defmodule AsBackendTheme2.Accounts do
   """
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
+  end
+
+  # Role Management
+
+  # Role Management
+  # Admin check
+  def is_admin?(%User{role: %{name: "admin"}}), do: true
+  def is_admin?(_), do: false
+
+  def get_user(id) do
+    case Repo.get(User, id) |> Repo.preload(:role) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
+
+  # Manager or admin check
+  def is_manager_or_admin?(%User{role: %{name: name}}) when name in ["admin", "manager"], do: true
+  def is_manager_or_admin?(_), do: false
+
+  def update_user_role(%User{} = user, role_name) do
+    case Repo.get_by(AsBackendTheme2.Accounts.Role, name: role_name) do
+      nil ->
+        {:error, :invalid_role}
+
+      role ->
+        user
+        |> Ecto.Changeset.change(%{role_id: role.id})
+        |> Repo.update()
+    end
+  end
+
+  def add_user_to_team(current_user, target_user_id, team_id) do
+    if is_manager_or_admin?(current_user) do
+      %TeamMembership{}
+      |> TeamMembership.changeset(%{user_id: target_user_id, team_id: team_id})
+      |> Repo.insert()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def remove_user_from_team(current_user, target_user_id, team_id) do
+    if is_manager_or_admin?(current_user) do
+      from(tm in TeamMembership,
+        where: tm.user_id == ^target_user_id and tm.team_id == ^team_id
+      )
+      |> Repo.delete_all()
+    else
+      {:error, :unauthorized}
+    end
   end
 end
