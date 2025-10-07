@@ -31,3 +31,28 @@ jobs:
     - name: Push Docker image
       run: |
         docker push rehan253/as_backend_theme2:latest
+
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          docker pull rehan253/as_backend_theme2:latest
+          docker rm -f time-manager-api || true
+          docker run -d \
+            --name time-manager-api \
+            --network time_manager_net \
+            -e PHX_SERVER=true \
+            -e SECRET_KEY_BASE=wAZOhE/PlPM0kJJZsDTl0eCa/LAm39NxpjJdA0M4/mWmArLnra2+/xe8Lf4A6Z06 \
+            -e PGUSER=postgres \
+            -e PGPASSWORD=postgres \
+            -e PGDATABASE=as_backend_theme2_prod \
+            -e PGHOST=tm-postgres \
+            -e PGPORT=5432 \
+            -e DATABASE_URL=ecto://postgres:postgres@tm-postgres:5432/as_backend_theme2_prod \
+            -e PORT=4000 \
+            -p 4000:4000 \
+            rehan253/as_backend_theme2:latest
+          docker restart tm-caddy
