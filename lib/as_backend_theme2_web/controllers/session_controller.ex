@@ -16,6 +16,12 @@ defmodule AsBackendTheme2Web.SessionController do
           {:ok, token, claims} = JwtAuth.generate_token(user)
 
           conn
+          |> put_resp_cookie("access_token", token, [
+            http_only: true,
+            secure: true,
+            same_site: "Lax",
+            max_age: 3600  # 1 hour
+          ])
           |> json(%{
             message: "Login successful",
             token: token,
@@ -29,5 +35,16 @@ defmodule AsBackendTheme2Web.SessionController do
           |> json(%{error: "Invalid credentials"})
         end
     end
+  end
+
+  def logout(conn, _params) do
+    conn
+    |> put_resp_cookie("access_token", "", [
+      http_only: true,
+      secure: true,
+      same_site: "Lax",
+      max_age: 0  # Expire immediately
+    ])
+    |> json(%{message: "Logout successful"})
   end
 end
