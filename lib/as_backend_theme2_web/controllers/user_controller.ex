@@ -118,4 +118,27 @@ end
         |> render(:error, changeset: changeset)
     end
   end
+
+  def change_password(conn, %{"old_password" => old_password, "new_password" => new_password}) do
+    current_user_id = conn.assigns.current_user_id
+    user = Accounts.get_user!(current_user_id)
+
+    case Accounts.change_user_password(user, old_password, new_password) do
+      {:ok, _updated_user} ->
+        conn
+        |> put_status(:ok)
+        |> json(%{message: "Password updated successfully"})
+
+      {:error, :invalid_old_password} ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{error: "Old password is incorrect"})
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
+        |> render(:error, changeset: changeset)
+    end
+  end
 end

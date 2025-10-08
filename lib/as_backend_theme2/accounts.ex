@@ -205,4 +205,19 @@ defmodule AsBackendTheme2.Accounts do
       {:error, :unauthorized}
     end
   end
+
+  # Password change for current user
+  def change_user_password(%User{} = user, old_password, new_password) when is_binary(old_password) and is_binary(new_password) do
+    case Argon2.verify_pass(old_password, user.password_hash || "") do
+      true ->
+        user
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.put_change(:password, new_password)
+        |> User.registration_changeset(%{})
+        |> Repo.update()
+
+      false ->
+        {:error, :invalid_old_password}
+    end
+  end
 end

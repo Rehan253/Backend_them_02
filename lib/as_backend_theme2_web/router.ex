@@ -43,6 +43,7 @@ defmodule AsBackendTheme2Web.Router do
   scope "/api", AsBackendTheme2Web do
     pipe_through [:api, :api_auth]
 
+    post "/users/change-password", UserController, :change_password
     put "/users/:id/change_role", UserController, :change_role
     post "/workingtime/:userID", WorkingTimeController, :create_for_user
     put "/workingtime/:id", WorkingTimeController, :update
