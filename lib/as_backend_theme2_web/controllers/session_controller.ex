@@ -16,9 +16,9 @@ defmodule AsBackendTheme2Web.SessionController do
           {:ok, token, claims} = JwtAuth.generate_token(user)
 
           conn
-          |> put_resp_cookie("access_token", token, http_only: true, max_age: 86400)
           |> json(%{
             message: "Login successful",
+            token: token,
             csrf: claims["csrf"],
             user_id: user.id,
             role_id: user.role_id
