@@ -55,11 +55,20 @@ defmodule AsBackendTheme2Web.Endpoint do
     def init(opts), do: opts
 
     def call(conn, _opts) do
+      origin = get_req_header(conn, "origin") |> List.first()
+      
+      allowed_origin = if origin && String.contains?(origin, "localhost") do
+        origin
+      else
+        "*"
+      end
+      
       conn =
         conn
-        |> put_resp_header("access-control-allow-origin", "*")
+        |> put_resp_header("access-control-allow-origin", allowed_origin)
         |> put_resp_header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS")
-        |> put_resp_header("access-control-allow-headers", "content-type, authorization")
+        |> put_resp_header("access-control-allow-headers", "content-type, authorization, x-csrf-token")
+        |> put_resp_header("access-control-allow-credentials", "true")
 
       if conn.method == "OPTIONS" do
         conn |> send_resp(200, "") |> halt()

@@ -30,6 +30,7 @@ defmodule AsBackendTheme2Web.Router do
     resources "/users", UserController, except: [:new, :edit]
     resources "/teams", TeamController, include: [:create]
     post "/login", SessionController, :login
+    post "/logout", SessionController, :logout
     get "/payroll/:user_id", PayrollController, :show
 
 
