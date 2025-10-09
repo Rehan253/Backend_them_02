@@ -35,9 +35,15 @@ defmodule AsBackendTheme2.TimeTracking do
   List of working time entries ordered by start time
   """
   def list_working_times_by_user(user_id, start_date, end_dt) do
+    uid =
+      case user_id do
+        i when is_integer(i) -> i
+        bin when is_binary(bin) -> String.to_integer(bin)
+      end
+
     base_query =
       from wt in WorkingTime,
-        where: wt.user_id == ^String.to_integer(user_id)
+        where: wt.user_id == ^uid
 
     query =
       cond do
@@ -53,6 +59,152 @@ defmodule AsBackendTheme2.TimeTracking do
 
     Repo.all(query)
   end
+
+  # ---------- Payroll summary (totals, night hours, weekly overtime) -------------
+
+  @doc """
+  Compute a payroll summary for a user over an optional date range.
+
+  Params:
+  - user_id: integer or string
+  - start_str: optional "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS"
+  - end_str:   optional "YYYY-MM-DD" or "YYYY-MM-DD HH:MM:SS"
+
+  Returns a map:
+  %{
+    user_id: 1,
+    start: "2025-10-01",
+    end: "2025-10-07",
+    total_hours: 43.5,
+    night_hours: 12.0,
+    overtime: true,
+    overtime_weeks: ["2025-W41"],
+    weekly_hours: %{"2025-W41" => 43.5}
+  }
+  """
+  def payroll_summary(user_id, start_str \\ nil, end_str \\ nil) do
+    user_id = to_int(user_id)
+    {start_ndt, end_ndt} = parse_range(start_str, end_str)
+
+    base =
+      from wt in WorkingTime,
+        where: wt.user_id == ^user_id
+
+    q =
+      base
+      |> maybe_from(start_ndt)
+      |> maybe_to(end_ndt)
+
+    records = Repo.all(q)
+
+    {total_hours, night_hours, weekly_hours} =
+      Enum.reduce(records, {0.0, 0.0, %{}}, fn wt, {tot, night, weeks} ->
+        dur_h = duration_hours(wt.start, wt.end)
+        tot2 = tot + dur_h
+        night2 = if wt.shift_type == "night", do: night + dur_h, else: night
+
+        date = NaiveDateTime.to_date(wt.start)
+        {week, week_year} = :calendar.iso_week_number({date.year, date.month, date.day})
+        key = "#{week_year}-W" <> String.pad_leading(Integer.to_string(week), 2, "0")
+        weeks2 = Map.update(weeks, key, dur_h, &(&1 + dur_h))
+
+        {tot2, night2, weeks2}
+      end)
+
+    overtime_weeks =
+      weekly_hours
+      |> Enum.filter(fn {_w, h} -> h > 40.0 end)
+      |> Enum.map(&elem(&1, 0))
+
+    %{
+      user_id: user_id,
+      start: start_str,
+      end: end_str,
+      total_hours: round2(total_hours),
+      night_hours: round2(night_hours),
+      overtime: overtime_weeks != [],
+      overtime_weeks: overtime_weeks,
+      weekly_hours: Enum.into(weekly_hours, %{}, fn {k, v} -> {k, round2(v)} end)
+    }
+  end
+
+  # ------------------------------ helpers --------------------------------------
+
+  defp duration_hours(%NaiveDateTime{} = s, %NaiveDateTime{} = e) do
+    secs = NaiveDateTime.diff(e, s, :second)
+    max(secs, 0) / 3600.0
+  end
+
+
+  defp round2(f) when is_float(f), do: Float.round(f, 2)
+  defp round2(x), do: x
+
+  defp to_int(v) when is_integer(v), do: v
+
+  defp to_int(v) when is_binary(v) do
+    case Integer.parse(v) do
+      {i, ""} -> i
+      _ -> raise ArgumentError, "user_id must be integer-like, got: #{inspect(v)}"
+    end
+  end
+
+  defp parse_range(nil, nil), do: {nil, nil}
+
+  defp parse_range(start_str, end_str) do
+    {parse_maybe_date_or_dt(start_str, :start), parse_maybe_date_or_dt(end_str, :end)}
+  end
+
+  # Accepts:
+  #  - "YYYY-MM-DD"  (expanded to start-of-day / end-of-day)
+  #  - "YYYY-MM-DD HH:MM:SS"
+  #  - ISO-like strings with "T"
+  defp parse_maybe_date_or_dt(nil, _kind), do: nil
+
+  defp parse_maybe_date_or_dt(str, kind) when is_binary(str) do
+    s = String.replace(str, "T", " ")
+
+    s =
+      case String.length(s) do
+        10 -> s <> if(kind == :start, do: " 00:00:00", else: " 23:59:59")
+        _ -> s
+      end
+
+    case NaiveDateTime.from_iso8601(s) do
+      {:ok, ndt} -> ndt
+      _ -> nil
+    end
+  end
+
+  # Accepts:
+  #  - "YYYY-MM-DD"  (we expand to start-of-day / end-of-day)
+  #  - "YYYY-MM-DD HH:MM:SS"
+  #  - ISO-like with "T"
+  defp parse_maybe_date_or_dt(nil, _kind), do: nil
+
+  defp parse_maybe_date_or_dt(str, kind) when is_binary(str) do
+    s = String.replace(str, "T", " ")
+
+    s =
+      case String.length(s) do
+        10 -> s <> if(kind == :start, do: " 00:00:00", else: " 23:59:59")
+        _ -> s
+      end
+
+    case NaiveDateTime.from_iso8601(s) do
+      {:ok, ndt} -> ndt
+      _ -> nil
+    end
+  end
+
+  defp maybe_from(query, nil), do: query
+
+  defp maybe_from(query, %NaiveDateTime{} = ndt),
+    do: from(wt in query, where: wt.start >= ^ndt)
+
+  defp maybe_to(query, nil), do: query
+
+  defp maybe_to(query, %NaiveDateTime{} = ndt),
+    do: from(wt in query, where: wt.end <= ^ndt)
 
   @doc """
   Gets a specific working time entry for a user.
@@ -293,7 +445,7 @@ defmodule AsBackendTheme2.TimeTracking do
                  |> Repo.insert() do
               {:ok, clock} ->
                 # If we're clocking out, create a working time entry
-                if (status == false and last_clock) && last_clock.status == true do
+                if status == false and last_clock && last_clock.status == true do
                   working_time_attrs = %{
                     "start" => last_clock.time,
                     "end" => current_time,

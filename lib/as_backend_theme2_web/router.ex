@@ -30,6 +30,8 @@ defmodule AsBackendTheme2Web.Router do
     resources "/users", UserController, except: [:new, :edit]
     resources "/teams", TeamController, include: [:create]
     post "/login", SessionController, :login
+    get "/payroll/:user_id", PayrollController, :show
+
 
     # GET only routes are open (no CSRF needed)
     get "/workingtime/:userID", WorkingTimeController, :index_by_user
