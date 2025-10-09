@@ -59,9 +59,7 @@ defmodule AsBackendTheme2Web.Endpoint do
 
       allowed_origins = [
         "http://localhost:3000",
-        "http://localhost:5173",
-        "https://13-51-8-177.sslip.io",
-        "https://yourfrontenddomain.com"
+        "https://timetracker.ooplab.org"
       ]
 
       allowed_origin =
@@ -69,7 +67,7 @@ defmodule AsBackendTheme2Web.Endpoint do
           origin
         else
           # fallback
-          "https://13-51-8-177.sslip.io"
+          "*"
         end
 
       conn =
