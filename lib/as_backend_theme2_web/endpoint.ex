@@ -56,18 +56,33 @@ defmodule AsBackendTheme2Web.Endpoint do
 
     def call(conn, _opts) do
       origin = get_req_header(conn, "origin") |> List.first()
-      
-      allowed_origin = if origin && String.contains?(origin, "localhost") do
-        origin
-      else
-        "*"
-      end
-      
+
+      allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://13-51-8-177.sslip.io",
+        "https://yourfrontenddomain.com"
+      ]
+
+      allowed_origin =
+        if origin in allowed_origins do
+          origin
+        else
+          # fallback
+          "https://13-51-8-177.sslip.io"
+        end
+
       conn =
         conn
         |> put_resp_header("access-control-allow-origin", allowed_origin)
-        |> put_resp_header("access-control-allow-methods", "GET, POST, PUT, DELETE, OPTIONS")
-        |> put_resp_header("access-control-allow-headers", "content-type, authorization, x-csrf-token")
+        |> put_resp_header(
+          "access-control-allow-methods",
+          "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        )
+        |> put_resp_header(
+          "access-control-allow-headers",
+          "authorization, content-type, x-csrf-token"
+        )
         |> put_resp_header("access-control-allow-credentials", "true")
 
       if conn.method == "OPTIONS" do
