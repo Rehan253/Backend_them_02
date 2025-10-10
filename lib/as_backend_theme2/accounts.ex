@@ -94,6 +94,27 @@ defmodule AsBackendTheme2.Accounts do
     end
   end
 
+  # -----------------------------------------------------
+  # Returns IDs of all users in the manager's team(s)
+  # -----------------------------------------------------
+  def get_team_user_ids(manager_id) do
+    import Ecto.Query, warn: false
+    alias AsBackendTheme2.{Repo, Team}
+    alias AsBackendTheme2.Accounts.{User, TeamMembership}
+
+    # Step 1: find all teams managed by this user
+    team_ids =
+      from(t in Team, where: t.manager_id == ^manager_id, select: t.id)
+      |> Repo.all()
+
+    # Step 2: get all user_ids linked to those teams via memberships
+    from(tm in TeamMembership,
+      where: tm.team_id in ^team_ids,
+      select: tm.user_id
+    )
+    |> Repo.all()
+  end
+
   @doc """
   Updates a user.
 
@@ -207,7 +228,8 @@ defmodule AsBackendTheme2.Accounts do
   end
 
   # Password change for current user
-  def change_user_password(%User{} = user, old_password, new_password) when is_binary(old_password) and is_binary(new_password) do
+  def change_user_password(%User{} = user, old_password, new_password)
+      when is_binary(old_password) and is_binary(new_password) do
     case Argon2.verify_pass(old_password, user.password_hash || "") do
       true ->
         user

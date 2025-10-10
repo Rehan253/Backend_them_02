@@ -58,9 +58,11 @@ defmodule AsBackendTheme2Web.Endpoint do
       origin = get_req_header(conn, "origin") |> List.first()
 
       allowed_origins = [
-        "http://localhost:3000",
-        "https://timetracker.ooplab.org"
+        "http://localhost",
+        "https://timetracker.ooplab.org",
+        "file://"
       ]
+
 
       allowed_origin =
         if origin in allowed_origins do

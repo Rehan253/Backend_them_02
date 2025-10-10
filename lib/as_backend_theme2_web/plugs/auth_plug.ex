@@ -7,9 +7,12 @@ defmodule AsBackendTheme2Web.Plugs.AuthPlug do
   def call(conn, _opts) do
     with {:ok, token} <- fetch_token(conn),
          {:ok, claims} <- JwtAuth.verify_token(token),
-         true <- valid_csrf?(conn, claims) do
-      # Attach user info to conn if needed
-      assign(conn, :current_user_id, claims["sub"])
+         true <- valid_csrf?(conn, claims),
+         user when not is_nil(user) <- AsBackendTheme2.Accounts.get_user!(claims["sub"]) do
+
+      conn
+      |> assign(:current_user_id, claims["sub"])
+      |> assign(:current_user, user)
     else
       _ ->
         conn
@@ -26,6 +29,7 @@ defmodule AsBackendTheme2Web.Plugs.AuthPlug do
   end
 
   defp valid_csrf?(%Plug.Conn{method: "GET"}, _claims), do: true
+
   defp valid_csrf?(%Plug.Conn{} = conn, claims) do
     csrf_from_header = get_req_header(conn, "x-csrf-token") |> List.first()
     csrf_from_token = Map.get(claims, "csrf")

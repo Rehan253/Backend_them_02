@@ -16,6 +16,7 @@ defmodule AsBackendTheme2.TimeTracking do
 
   import Ecto.Query, warn: false
   alias AsBackendTheme2.Repo
+  alias AsBackendTheme2.Accounts.User
 
   alias AsBackendTheme2.TimeTracking.WorkingTime
 
@@ -134,7 +135,6 @@ defmodule AsBackendTheme2.TimeTracking do
     secs = NaiveDateTime.diff(e, s, :second)
     max(secs, 0) / 3600.0
   end
-
 
   defp round2(f) when is_float(f), do: Float.round(f, 2)
   defp round2(x), do: x
@@ -531,5 +531,42 @@ defmodule AsBackendTheme2.TimeTracking do
   """
   def change_clock(%Clock{} = clock, attrs \\ %{}) do
     Clock.changeset(clock, attrs)
+  end
+
+  @doc """
+  Returns a list of employees and managers who are currently clocked in (not clocked out yet).
+
+  Logic:
+  - For each user, find their latest clock record.
+  - If the latest record has `status = true`, they are currently clocked in.
+  - Only include users whose role is 'Employee' or 'Manager'.
+  """
+  def users_not_clocked_out do
+    alias AsBackendTheme2.Accounts.{User, Role}
+    alias AsBackendTheme2.TimeTracking.Clock
+    import Ecto.Query, warn: false
+    alias AsBackendTheme2.Repo
+
+    # Step 1: Get latest clock time per user
+    latest_clock_per_user =
+      from(c in Clock,
+        select: %{user_id: c.user_id, latest_time: max(c.time)},
+        group_by: c.user_id
+      )
+
+    # Step 2: Join with users + roles, only include employees/managers whose latest clock has status = true
+    query =
+      from(u in User,
+        join: lc in subquery(latest_clock_per_user),
+        on: u.id == lc.user_id,
+        join: c in Clock,
+        on: c.user_id == lc.user_id and c.time == lc.latest_time,
+        join: r in Role,
+        on: r.id == u.role_id,
+        where: c.status == true and r.name in ["employee", "manager"],
+        select: %{id: u.id, email: u.email, role: r.name}
+      )
+
+    Repo.all(query)
   end
 end

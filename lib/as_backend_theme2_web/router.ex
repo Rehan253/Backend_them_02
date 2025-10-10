@@ -55,6 +55,16 @@ defmodule AsBackendTheme2Web.Router do
     post "/teams/:team_id/users/:user_id", TeamController, :add_user
     delete "/teams/:team_id/users/:user_id", TeamController, :remove_user
 
+    # Leaves
+    resources "/leaves", LeaveRequestController, only: [:index, :create, :show]
+    put "/leaves/:id/approve", LeaveRequestController, :approve
+    put "/leaves/:id/reject", LeaveRequestController, :reject
+    put "/leaves/:id/cancel", LeaveRequestController, :cancel
+
+      # Clock reminders
+    get "/reminder/not-clocked-out", ReminderController, :not_clocked_out
+
+
 
 
     post "/clocks/:userID", ClockController, :toggle
