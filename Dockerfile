@@ -11,6 +11,8 @@ WORKDIR /app
 # Install Hex and Rebar
 RUN mix local.hex --force && \
     mix local.rebar --force
+    
+RUN rm -rf _build deps
 
 # Copy project files required to fetch deps
 COPY mix.exs mix.lock ./ 
