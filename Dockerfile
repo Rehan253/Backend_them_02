@@ -19,8 +19,13 @@ COPY mix.exs mix.lock ./
 COPY config config
 
 # Fetch and compile dependencies
-RUN mix deps.get --only prod
-RUN mix deps.compile
+# Fetch and compile dependencies (with retry & longer timeout)
+ENV HEX_HTTP_CONCURRENCY=1 HEX_HTTP_TIMEOUT=240
+
+RUN mix local.hex --force && \
+    mix local.rebar --force && \
+    mix deps.get --only prod --force && \
+    mix deps.compile
 
 # copy all source files
 COPY . .
