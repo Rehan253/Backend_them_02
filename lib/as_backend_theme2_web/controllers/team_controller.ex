@@ -1,5 +1,6 @@
 defmodule AsBackendTheme2Web.TeamController do
   use AsBackendTheme2Web, :controller
+  import Ecto.Query
   alias AsBackendTheme2.Team
 
   alias AsBackendTheme2.Accounts
@@ -7,7 +8,7 @@ defmodule AsBackendTheme2Web.TeamController do
 
   def index(conn, _params) do
     teams = Repo.all(Team) |> Repo.preload(manager: :role, users: :role)
-    conn |> json(%{data: teams})
+    render(conn, :index, teams: teams)
   end
 
   def show(conn, %{"id" => id}) do
@@ -16,7 +17,7 @@ defmodule AsBackendTheme2Web.TeamController do
         conn |> put_status(:not_found) |> json(%{error: "Team not found"})
 
       team ->
-        conn |> json(%{data: team})
+        render(conn, :show, team: team)
     end
   end
 
@@ -91,6 +92,49 @@ defmodule AsBackendTheme2Web.TeamController do
 
         {_count, _} ->
           send_resp(conn, :no_content, "")
+      end
+    else
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{error: "User not found"})
+    end
+  end
+
+  def delete(conn, %{"id" => id}) do
+    with {:ok, current_user} <- Accounts.get_user(conn.assigns.current_user_id) do
+      # Only admins can delete teams
+      if current_user.role.name != "admin" do
+        conn |> put_status(:forbidden) |> json(%{error: "Only admins can delete teams"})
+      else
+        case Repo.get(Team, id) do
+          nil ->
+            conn |> put_status(:not_found) |> json(%{error: "Team not found"})
+          
+          team ->
+            # Delete team memberships first to avoid foreign key constraints
+            Repo.transaction(fn ->
+              # Delete all team memberships for this team
+              from(tm in AsBackendTheme2.Accounts.TeamMembership, where: tm.team_id == ^team.id)
+              |> Repo.delete_all()
+              
+              # Now delete the team
+              case Repo.delete(team) do
+                {:ok, team} -> team
+                {:error, changeset} -> Repo.rollback(changeset)
+              end
+            end)
+            |> case do
+              {:ok, _team} ->
+                send_resp(conn, :no_content, "")
+              
+              {:error, changeset} ->
+                conn
+                |> put_status(:unprocessable_entity)
+                |> json(%{
+                  error: "Could not delete team",
+                  details: Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+                })
+            end
+        end
       end
     else
       {:error, :not_found} ->
