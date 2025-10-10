@@ -59,7 +59,9 @@ defmodule AsBackendTheme2Web.Endpoint do
 
       allowed_origins = [
         "http://localhost",
+        "http://localhost:3000",
         "https://timetracker.ooplab.org",
+        "https://13-51-8-177.sslip.io/",
         "file://"
       ]
 
