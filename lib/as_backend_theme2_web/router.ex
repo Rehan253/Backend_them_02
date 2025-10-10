@@ -40,7 +40,6 @@ defmodule AsBackendTheme2Web.Router do
     get "/tasks/assigned-by/:user_id", TaskController, :get_tasks_assigned_by_user
     get "/tasks/team/:team_id", TaskController, :get_tasks_by_team
 
-
     # GET only routes are open (no CSRF needed)
     get "/workingtime/:userID", WorkingTimeController, :index_by_user
     get "/workingtime/:userID/:id", WorkingTimeController, :show_one
@@ -68,11 +67,8 @@ defmodule AsBackendTheme2Web.Router do
     put "/leaves/:id/reject", LeaveRequestController, :reject
     put "/leaves/:id/cancel", LeaveRequestController, :cancel
 
-      # Clock reminders
+    # Clock reminders
     get "/reminder/not-clocked-out", ReminderController, :not_clocked_out
-
-
-
 
     post "/clocks/:userID", ClockController, :toggle
   end

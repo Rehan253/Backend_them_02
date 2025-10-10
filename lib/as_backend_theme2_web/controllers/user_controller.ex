@@ -5,7 +5,6 @@ defmodule AsBackendTheme2Web.UserController do
   alias AsBackendTheme2.Accounts.User
   alias AsBackendTheme2.Repo
 
-
   action_fallback AsBackendTheme2Web.FallbackController
 
   def index(conn, params) do
@@ -30,23 +29,22 @@ defmodule AsBackendTheme2Web.UserController do
     render(conn, :index, users: users)
   end
 
-def create(conn, %{"user" => user_params}) do
-  case Accounts.create_user(user_params) do
-    {:ok, user} ->
-      user = AsBackendTheme2.Repo.preload(user, :role)
+  def create(conn, %{"user" => user_params}) do
+    case Accounts.create_user(user_params) do
+      {:ok, user} ->
+        user = AsBackendTheme2.Repo.preload(user, :role)
 
-      conn
-      |> put_status(:created)
-      |> render(:show, user: user)
+        conn
+        |> put_status(:created)
+        |> render(:show, user: user)
 
-    {:error, changeset} ->
-      conn
-      |> put_status(:unprocessable_entity)
-      |> put_view(json: AsBackendTheme2Web.UserJSON)
-      |> render(:error, changeset: changeset)
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(json: AsBackendTheme2Web.UserJSON)
+        |> render(:error, changeset: changeset)
+    end
   end
-end
-
 
   @spec show(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def show(conn, %{"id" => id}) do
@@ -91,7 +89,7 @@ end
     with true <- Accounts.is_admin?(current_user),
          {:ok, user} <- Accounts.get_user(user_id),
          {:ok, updated_user} <- Accounts.update_user_role(user, role_name),
-          updated_user = Repo.preload(updated_user, :role) do
+         updated_user = Repo.preload(updated_user, :role) do
       conn
       |> put_status(:ok)
       |> render(:show, user: updated_user)

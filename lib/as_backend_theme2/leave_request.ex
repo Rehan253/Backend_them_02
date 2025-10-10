@@ -32,7 +32,7 @@ defmodule AsBackendTheme2.Leaves.LeaveRequest do
 
   defp validate_date_order(changeset) do
     start_date = get_field(changeset, :start_date)
-    end_date   = get_field(changeset, :end_date)
+    end_date = get_field(changeset, :end_date)
 
     if start_date && end_date && Date.compare(end_date, start_date) == :lt do
       add_error(changeset, :end_date, "must be after start date")
