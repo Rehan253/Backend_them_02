@@ -16,12 +16,13 @@ defmodule AsBackendTheme2Web.SessionController do
           {:ok, token, claims} = JwtAuth.generate_token(user)
 
           conn
-          |> put_resp_cookie("access_token", token, [
+          |> put_resp_cookie("access_token", token,
             http_only: true,
             secure: true,
             same_site: "Lax",
-            max_age: 3600  # 1 hour
-          ])
+            # 1 hour
+            max_age: 3600
+          )
           |> json(%{
             message: "Login successful",
             token: token,
@@ -39,12 +40,13 @@ defmodule AsBackendTheme2Web.SessionController do
 
   def logout(conn, _params) do
     conn
-    |> put_resp_cookie("access_token", "", [
+    |> put_resp_cookie("access_token", "",
       http_only: true,
       secure: true,
       same_site: "Lax",
-      max_age: 0  # Expire immediately
-    ])
+      # Expire immediately
+      max_age: 0
+    )
     |> json(%{message: "Logout successful"})
   end
 end

@@ -7,8 +7,10 @@ defmodule AsBackendTheme2Web.PayrollController do
   Returns totals, night hours, and weeks over 40h for a user.
   """
   def show(conn, %{"user_id" => user_id} = params) do
-    start_str = Map.get(params, "start")   # optional
-    end_str   = Map.get(params, "end")     # optional
+    # optional
+    start_str = Map.get(params, "start")
+    # optional
+    end_str = Map.get(params, "end")
 
     summary = TimeTracking.payroll_summary(user_id, start_str, end_str)
     json(conn, summary)

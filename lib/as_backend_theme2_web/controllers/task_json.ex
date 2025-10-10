@@ -28,22 +28,34 @@ defmodule AsBackendTheme2Web.TaskJSON do
       team_id: task.team_id,
       created_at: task.inserted_at,
       updated_at: task.updated_at,
-      assigned_to: if(task.assigned_to, do: %{
-        id: task.assigned_to.id,
-        first_name: task.assigned_to.first_name,
-        last_name: task.assigned_to.last_name,
-        email: task.assigned_to.email
-      }, else: nil),
-      assigned_by: if(task.assigned_by, do: %{
-        id: task.assigned_by.id,
-        first_name: task.assigned_by.first_name,
-        last_name: task.assigned_by.last_name,
-        email: task.assigned_by.email
-      }, else: nil),
-      team: if(task.team, do: %{
-        id: task.team.id,
-        name: task.team.name
-      }, else: nil)
+      assigned_to:
+        if(task.assigned_to,
+          do: %{
+            id: task.assigned_to.id,
+            first_name: task.assigned_to.first_name,
+            last_name: task.assigned_to.last_name,
+            email: task.assigned_to.email
+          },
+          else: nil
+        ),
+      assigned_by:
+        if(task.assigned_by,
+          do: %{
+            id: task.assigned_by.id,
+            first_name: task.assigned_by.first_name,
+            last_name: task.assigned_by.last_name,
+            email: task.assigned_by.email
+          },
+          else: nil
+        ),
+      team:
+        if(task.team,
+          do: %{
+            id: task.team.id,
+            name: task.team.name
+          },
+          else: nil
+        )
     }
   end
 end
