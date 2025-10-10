@@ -155,6 +155,22 @@ defmodule AsBackendTheme2.Accounts do
       from(c in Clock, where: c.user_id == ^user.id)
       |> Repo.delete_all()
 
+      # Delete all team memberships for this user
+      from(tm in TeamMembership, where: tm.user_id == ^user.id)
+      |> Repo.delete_all()
+
+      # Update tasks assigned to this user to be unassigned
+      from(t in AsBackendTheme2.TaskManagement.Task, where: t.assigned_to_id == ^user.id)
+      |> Repo.update_all(set: [assigned_to_id: nil])
+
+      # Update tasks assigned by this user to be unassigned
+      from(t in AsBackendTheme2.TaskManagement.Task, where: t.assigned_by_id == ^user.id)
+      |> Repo.update_all(set: [assigned_by_id: nil])
+
+      # If this user was a manager, remove them from teams they managed
+      from(t in AsBackendTheme2.Team, where: t.manager_id == ^user.id)
+      |> Repo.update_all(set: [manager_id: nil])
+
       # Now delete the user
       case Repo.delete(user) do
         {:ok, user} -> user
