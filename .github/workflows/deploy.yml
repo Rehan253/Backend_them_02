@@ -26,6 +26,12 @@ jobs:
 
     - name: Build Docker image
       run: |
+        # Completely remove any old cached builds and layers
+        rm -rf _build deps
+        docker system prune -af || true
+        docker builder prune -af || true
+
+        # 🔨 Build image fully from scratch (no cache at all)
         docker build --no-cache -t rehan253/as_backend_theme2:latest .
 
     - name: Push Docker image
