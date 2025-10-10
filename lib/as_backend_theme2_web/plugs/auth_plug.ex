@@ -9,7 +9,6 @@ defmodule AsBackendTheme2Web.Plugs.AuthPlug do
          {:ok, claims} <- JwtAuth.verify_token(token),
          true <- valid_csrf?(conn, claims),
          user when not is_nil(user) <- AsBackendTheme2.Accounts.get_user!(claims["sub"]) do
-
       conn
       |> assign(:current_user_id, claims["sub"])
       |> assign(:current_user, user)

@@ -55,14 +55,12 @@ defmodule AsBackendTheme2Web.Endpoint do
     def init(opts), do: opts
 
     def call(conn, _opts) do
-
       origin = get_req_header(conn, "origin") |> List.first()
 
       allowed_origins = [
         "http://localhost:3000",
         "https://timetracker.ooplab.org"
       ]
-
 
       allowed_origin =
         if origin in allowed_origins do
