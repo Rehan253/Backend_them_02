@@ -20,7 +20,10 @@ defmodule AsBackendTheme2Web.WorkingTimeJSON do
       id: working_time.id,
       start: working_time.start,
       end: working_time.end,
-      user_id: working_time.user_id
+      user_id: working_time.user_id,
+      shift_type: working_time.shift_type,
+      overtime: working_time.overtime
+
     }
   end
 

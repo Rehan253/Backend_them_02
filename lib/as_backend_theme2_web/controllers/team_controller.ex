@@ -6,14 +6,15 @@ defmodule AsBackendTheme2Web.TeamController do
   alias AsBackendTheme2.Repo
 
   def index(conn, _params) do
-    teams = Repo.all(Team) |> Repo.preload([manager: :role, users: :role])
+    teams = Repo.all(Team) |> Repo.preload(manager: :role, users: :role)
     conn |> json(%{data: teams})
   end
 
   def show(conn, %{"id" => id}) do
-    case Repo.get(Team, id) |> Repo.preload([manager: :role, users: :role]) do
+    case Repo.get(Team, id) |> Repo.preload(manager: :role, users: :role) do
       nil ->
         conn |> put_status(:not_found) |> json(%{error: "Team not found"})
+
       team ->
         conn |> json(%{data: team})
     end
@@ -23,6 +24,7 @@ defmodule AsBackendTheme2Web.TeamController do
     case Repo.get(Team, team_id) |> Repo.preload(users: :role) do
       nil ->
         conn |> put_status(:not_found) |> json(%{error: "Team not found"})
+
       team ->
         conn |> json(%{data: team.users})
     end
@@ -84,11 +86,11 @@ defmodule AsBackendTheme2Web.TeamController do
              String.to_integer(user_id),
              String.to_integer(team_id)
            ) do
-        {_count, _} ->
-          send_resp(conn, :no_content, "")
-
         {:error, :unauthorized} ->
           conn |> put_status(:forbidden) |> json(%{error: "Not allowed"})
+
+        {_count, _} ->
+          send_resp(conn, :no_content, "")
       end
     else
       {:error, :not_found} ->

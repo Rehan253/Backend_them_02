@@ -21,6 +21,8 @@ defmodule AsBackendTheme2Web.UserJSON do
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
+      address: user.address,
+      skills: user.skills,
       role: user.role && user.role.name
 
     }
