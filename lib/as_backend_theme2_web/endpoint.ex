@@ -55,14 +55,12 @@ defmodule AsBackendTheme2Web.Endpoint do
     def init(opts), do: opts
 
     def call(conn, _opts) do
+
       origin = get_req_header(conn, "origin") |> List.first()
 
       allowed_origins = [
-        "http://localhost",
         "http://localhost:3000",
-        "https://timetracker.ooplab.org",
-        "https://13-51-8-177.sslip.io/",
-        "file://"
+        "https://timetracker.ooplab.org"
       ]
 
 
