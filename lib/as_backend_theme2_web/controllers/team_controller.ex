@@ -5,6 +5,29 @@ defmodule AsBackendTheme2Web.TeamController do
   alias AsBackendTheme2.Accounts
   alias AsBackendTheme2.Repo
 
+  def index(conn, _params) do
+    teams = Repo.all(Team) |> Repo.preload([manager: :role, users: :role])
+    conn |> json(%{data: teams})
+  end
+
+  def show(conn, %{"id" => id}) do
+    case Repo.get(Team, id) |> Repo.preload([manager: :role, users: :role]) do
+      nil ->
+        conn |> put_status(:not_found) |> json(%{error: "Team not found"})
+      team ->
+        conn |> json(%{data: team})
+    end
+  end
+
+  def members(conn, %{"team_id" => team_id}) do
+    case Repo.get(Team, team_id) |> Repo.preload(users: :role) do
+      nil ->
+        conn |> put_status(:not_found) |> json(%{error: "Team not found"})
+      team ->
+        conn |> json(%{data: team.users})
+    end
+  end
+
   def create(conn, %{"team" => team_params}) do
     case Repo.insert(Team.changeset(%Team{}, team_params)) do
       {:ok, team} ->
@@ -55,18 +78,21 @@ defmodule AsBackendTheme2Web.TeamController do
   end
 
   def remove_user(conn, %{"team_id" => team_id, "user_id" => user_id}) do
-    current_user = conn.assigns.current_user_id |> Accounts.get_user!()
+    with {:ok, current_user} <- Accounts.get_user(conn.assigns.current_user_id) do
+      case Accounts.remove_user_from_team(
+             current_user,
+             String.to_integer(user_id),
+             String.to_integer(team_id)
+           ) do
+        {_count, _} ->
+          send_resp(conn, :no_content, "")
 
-    case Accounts.remove_user_from_team(
-           current_user,
-           String.to_integer(user_id),
-           String.to_integer(team_id)
-         ) do
-      {_count, _} ->
-        send_resp(conn, :no_content, "")
-
-      {:error, :unauthorized} ->
-        conn |> put_status(:forbidden) |> json(%{error: "Not allowed"})
+        {:error, :unauthorized} ->
+          conn |> put_status(:forbidden) |> json(%{error: "Not allowed"})
+      end
+    else
+      {:error, :not_found} ->
+        conn |> put_status(:not_found) |> json(%{error: "User not found"})
     end
   end
 end

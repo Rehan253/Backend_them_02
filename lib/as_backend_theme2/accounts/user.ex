@@ -2,6 +2,8 @@ defmodule AsBackendTheme2.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:id, :first_name, :last_name, :email, :skills, :address, :role_id, :role]}
+
   schema "users" do
     field :first_name, :string
     field :last_name, :string
