@@ -11,7 +11,7 @@ WORKDIR /app
 # Install Hex and Rebar
 RUN mix local.hex --force && \
     mix local.rebar --force
-
+    
 RUN rm -rf _build deps
 
 # Copy project files required to fetch deps
@@ -19,22 +19,14 @@ COPY mix.exs mix.lock ./
 COPY config config
 
 # Fetch and compile dependencies
-# Fetch and compile dependencies (with retry & longer timeout)
-ENV HEX_HTTP_CONCURRENCY=1 HEX_HTTP_TIMEOUT=240
-
-RUN mix local.hex --force && \
-    mix local.rebar --force && \
-    mix deps.get --only prod --force && \
-    mix deps.compile
+RUN mix deps.get --only prod
+RUN mix deps.compile
 
 # copy all source files
 COPY . .
 
-# Compile the app and ensure _build is clean before release
-RUN rm -rf _build && \
-    MIX_ENV=prod mix deps.compile && \
-    MIX_ENV=prod mix compile && \
-    MIX_ENV=prod mix release
+# Compile the app
+RUN MIX_ENV=prod mix compile
 
 # (Optional) build frontend assets
 # RUN npm install --prefix assets && npm run deploy --prefix assets && mix phx.digest
