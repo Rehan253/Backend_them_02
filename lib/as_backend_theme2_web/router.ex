@@ -34,6 +34,12 @@ defmodule AsBackendTheme2Web.Router do
     post "/logout", SessionController, :logout
     get "/payroll/:user_id", PayrollController, :show
 
+    # Task management routes
+    resources "/tasks", TaskController, only: [:index, :show, :create, :update, :delete]
+    get "/tasks/user/:user_id", TaskController, :get_tasks_by_user
+    get "/tasks/assigned-by/:user_id", TaskController, :get_tasks_assigned_by_user
+    get "/tasks/team/:team_id", TaskController, :get_tasks_by_team
+
 
     # GET only routes are open (no CSRF needed)
     get "/workingtime/:userID", WorkingTimeController, :index_by_user
@@ -54,6 +60,7 @@ defmodule AsBackendTheme2Web.Router do
     delete "/workingtime/:id", WorkingTimeController, :delete
     post "/teams/:team_id/users/:user_id", TeamController, :add_user
     delete "/teams/:team_id/users/:user_id", TeamController, :remove_user
+    delete "/teams/:id", TeamController, :delete
 
 
 

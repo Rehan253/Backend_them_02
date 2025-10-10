@@ -2,8 +2,6 @@ defmodule AsBackendTheme2.Team do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [:id, :name, :manager_id, :manager, :users]}
-
   schema "teams" do
     field :name, :string
     belongs_to :manager, AsBackendTheme2.Accounts.User

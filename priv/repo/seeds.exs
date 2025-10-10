@@ -4,6 +4,8 @@ alias AsBackendTheme2.TimeTracking.WorkingTime
 alias AsBackendTheme2.TimeTracking.Clock
 alias AsBackendTheme2.Team
 alias AsBackendTheme2.Accounts.TeamMembership
+alias AsBackendTheme2.TaskManagement
+alias AsBackendTheme2.TaskManagement.Task
 
 users = [
   %{
@@ -363,3 +365,122 @@ for {team_index, user_ids} <- team_assignments do
 end
 
 Agent.stop(counter)
+
+# Task seeds
+IO.puts("Creating sample tasks...")
+
+# Get some users and teams for task assignment
+all_users = Repo.all(User)
+all_teams = Repo.all(Team)
+
+# Ensure we have users and teams
+if length(all_users) > 0 and length(all_teams) > 0 do
+  # Get managers and employees
+  managers = Enum.filter(all_users, fn user -> user.role_id == 2 end)
+  employees = Enum.filter(all_users, fn user -> user.role_id == 1 end)
+  
+  # Get the first team
+  team = List.first(all_teams)
+  
+  # Sample tasks
+  sample_tasks = [
+    %{
+      title: "Complete quarterly report",
+      description: "Prepare and submit the Q4 quarterly report with all metrics and analysis",
+      status: "pending",
+      priority: "high",
+      due_date: ~D[2024-12-31],
+      assigned_to_id: if(length(employees) > 0, do: Enum.at(employees, 0).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Update project documentation",
+      description: "Review and update all project documentation to reflect current status",
+      status: "in_progress",
+      priority: "medium",
+      due_date: ~D[2024-12-20],
+      assigned_to_id: if(length(employees) > 1, do: Enum.at(employees, 1).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Code review for new feature",
+      description: "Review the new authentication feature implementation and provide feedback",
+      status: "pending",
+      priority: "medium",
+      due_date: ~D[2024-12-25],
+      assigned_to_id: if(length(employees) > 2, do: Enum.at(employees, 2).id, else: nil),
+      assigned_by_id: if(length(managers) > 1, do: Enum.at(managers, 1).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Database optimization",
+      description: "Analyze and optimize database queries for better performance",
+      status: "completed",
+      priority: "high",
+      due_date: ~D[2024-12-15],
+      assigned_to_id: if(length(employees) > 0, do: Enum.at(employees, 0).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "User interface testing",
+      description: "Conduct comprehensive testing of the new user interface components",
+      status: "pending",
+      priority: "low",
+      due_date: ~D[2024-12-30],
+      assigned_to_id: if(length(employees) > 3, do: Enum.at(employees, 3).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Security audit preparation",
+      description: "Prepare all necessary documents and systems for the upcoming security audit",
+      status: "in_progress",
+      priority: "high",
+      due_date: ~D[2024-12-22],
+      assigned_to_id: if(length(employees) > 1, do: Enum.at(employees, 1).id, else: nil),
+      assigned_by_id: if(length(managers) > 1, do: Enum.at(managers, 1).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Team training session",
+      description: "Organize and conduct training session for new team members",
+      status: "pending",
+      priority: "medium",
+      due_date: ~D[2024-12-28],
+      assigned_to_id: if(length(employees) > 4, do: Enum.at(employees, 4).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    },
+    %{
+      title: "Bug fixes for production",
+      description: "Fix critical bugs reported in the production environment",
+      status: "completed",
+      priority: "high",
+      due_date: ~D[2024-12-10],
+      assigned_to_id: if(length(employees) > 2, do: Enum.at(employees, 2).id, else: nil),
+      assigned_by_id: if(length(managers) > 0, do: Enum.at(managers, 0).id, else: nil),
+      team_id: team.id
+    }
+  ]
+
+  # Create tasks
+  for task_data <- sample_tasks do
+    case Repo.get_by(Task, title: task_data.title) do
+      nil ->
+        case TaskManagement.create_task(task_data) do
+          {:ok, task} -> 
+            IO.puts("Created task: #{task.title}")
+          {:error, changeset} -> 
+            IO.puts("Failed to create task: #{task_data.title}")
+            IO.inspect(changeset.errors)
+        end
+      _existing_task ->
+        IO.puts("Task already exists: #{task_data.title}")
+    end
+  end
+else
+  IO.puts("No users or teams found. Please run the main seeds first.")
+end
